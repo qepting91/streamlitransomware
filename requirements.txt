@@ -1,5 +1,8 @@
-Pillow
-Plotly
-markdownlit
-python-dotenv
-psycopg2-binary
+duckdb>=1.1.0
+streamlit>=1.52.0
+httpx
+lxml
+pandas
+plotly
+networkx
+tomli  # For safely reading secrets.toml in ETL script if needed (though py3.11+ has tomllib, explicit is fine or just use stdlib)
