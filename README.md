@@ -2,6 +2,12 @@
 
 **RansomStat CTI** is a next-generation threat intelligence dashboard designed for analysts, researchers, and defenders. It aggregates data from multiple high-fidelity sources to provide a real-time view of the ransomware landscape, actionable offensive dorks, and intelligence correlations.
 
+[![CI](https://github.com/qepting91/streamlitransomware/workflows/Python%20Code%20Integrity/badge.svg)](https://github.com/qepting91/streamlitransomware/actions/workflows/ci.yml)
+[![Security](https://github.com/qepting91/streamlitransomware/workflows/Security%20Pipeline/badge.svg)](https://github.com/qepting91/streamlitransomware/actions/workflows/security.yml)
+[![Docs](https://github.com/qepting91/streamlitransomware/workflows/Deploy%20Documentation/badge.svg)](https://github.com/qepting91/streamlitransomware/actions/workflows/deploy-docs.yml)
+
+📖 **[View Full Documentation](https://qepting91.github.io/streamlitransomware/)** | [CI/CD Pipeline](https://qepting91.github.io/streamlitransomware/ci-cd) | [Live Dashboard](https://ransomstat.streamlit.app)
+
 ## 🌟 Key Features
 
 ### 📡 Threat Ticker
@@ -86,6 +92,25 @@ streamlit run app.py
 *   **Engine**: Python 3.13 (AsyncIO)
 *   **Database**: DuckDB (Local / MotherDuck Serverless)
 *   **ETL**: Custom `etl_engine.py` crawler.
+
+---
+
+## 📖 Documentation
+
+Full documentation is available at **https://qepting91.github.io/streamlitransomware/**
+
+### What's Covered
+
+- **[Getting Started](https://qepting91.github.io/streamlitransomware/)** - Installation, prerequisites, and quick start guide
+- **[CI/CD Pipeline](https://qepting91.github.io/streamlitransomware/ci-cd)** - Automated testing, linting, security scanning, and deployment workflows
+
+### For Contributors
+
+Learn about code quality standards, security checks, and how to run tests locally:
+- Ruff linting configuration and rules
+- Pytest test suite structure
+- Bandit security scanning
+- Pre-commit hooks setup
 
 ---
 
