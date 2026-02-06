@@ -1,7 +1,7 @@
 import streamlit as st
-import duckdb
-import shared_utils
+
 import etl_engine
+import shared_utils
 
 # Get connection
 con = shared_utils.get_db_connection()
@@ -51,7 +51,9 @@ if con:
         # Quick stats row
         total_victims = con.execute("SELECT count(*) FROM victims").fetchone()[0]
         # Count distinct groups
-        active_groups = con.execute("SELECT count(distinct group_name) FROM victims").fetchone()[0]
+        active_groups = con.execute(
+            "SELECT count(distinct group_name) FROM victims"
+        ).fetchone()[0]
         
         col1, col2, col3 = st.columns(3)
         col1.metric("Recent Victims", total_victims)
@@ -72,7 +74,8 @@ with st.expander("ℹ️ How to use & Data Sources"):
     **How to use:**
     1. **View:** Scroll the ticker to see the latest victims.
     2. **Search:** Use the header search bar to find specific groups (e.g., *LockBit*) or victims.
-    3. **Drill-Down:** Select a row to view the full **Threat Profile** of the attacker, including their active Tor sites and victim history.
+    3. **Drill-Down:** Select a row to view the full **Threat Profile** of 
+       the attacker, including their active Tor sites and victim history.
     4. **Sync:** Use the Sidebar controls to look back further (up to 30 days).
     """)
 
@@ -80,7 +83,11 @@ with st.expander("ℹ️ How to use & Data Sources"):
 # Global Search
 col_s1, col_s2, col_s3 = st.columns([1, 2, 1])
 with col_s2:
-    search_query = st.text_input("Search Victims / Groups", placeholder="🔍 Search e.g. Qilin, LockBit...", label_visibility="collapsed")
+    search_query = st.text_input(
+        "Search Victims / Groups", 
+        placeholder="🔍 Search e.g. Qilin, LockBit...", 
+        label_visibility="collapsed"
+    )
 
 # Data Fetch
 if con:
@@ -127,7 +134,10 @@ if con:
                     # --- Header Stats ---
                     if meta:
                         locs = meta.get('locations', [])
-                        online_locs = [l for l in locs if l.get('available')]
+                        online_locs = [
+                            loc_info for loc_info in locs 
+                            if loc_info.get('available')
+                        ]
                         
                         col1, col2 = st.columns(2)
                         with col1:
@@ -141,8 +151,8 @@ if con:
                             for loc in online_locs:
                                 fqdn = loc.get('fqdn')
                                 if fqdn:
-                                    # Create a copyable code block or link
-                                    # Note: Streamlit links open in new tab, good for tor browser
+                                    # Create a copyable code block or link. 
+                                    # Streamlit links open in new tab.
                                     st.markdown(f"- [`{fqdn}`](http://{fqdn})")
                     
                     st.markdown("---")

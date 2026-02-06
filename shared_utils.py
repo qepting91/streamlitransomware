@@ -32,7 +32,10 @@ def render_analyst_tools(con):
 
         # --- Section 1: Data Sync (Collapsible) ---
         with st.expander("🔄 Data Sync Settings", expanded=False):
-            days_to_fetch = st.slider("Lookback Days", min_value=1, max_value=30, value=7, help="How many days of attacks to fetch from the API.")
+            days_to_fetch = st.slider(
+                "Lookback Days", min_value=1, max_value=30, value=7, 
+                help="How many days of attacks to fetch from the API."
+            )
             
             if st.button("Fetch Latest Intel", use_container_width=True):
                 with st.spinner(f"Ingesting last {days_to_fetch} days..."):
@@ -107,7 +110,10 @@ def render_analyst_tools(con):
                     st.download_button("💾 Wav", saved_log["bytes"], "note.wav", "audio/wav", use_container_width=True)
                 with col2:
                     if saved_log["transcript"]:
-                        st.download_button("📄 MD", saved_log["transcript"], "transcript.md", "text/markdown", use_container_width=True)
+                        st.download_button(
+                            "📄 MD", saved_log["transcript"], "transcript.md", 
+                            "text/markdown", use_container_width=True
+                        )
                         
                 if st.button("Clear Log", use_container_width=True):
                     st.session_state["voice_log"] = {"bytes": None, "transcript": None}
@@ -135,7 +141,10 @@ def render_analyst_tools(con):
             st.session_state["notepad_content"] = current_notes
 
             if current_notes:
-                st.download_button("💾 Save Notes", f"# Mission Notes\n\n{current_notes}", "notes.md", "text/markdown", use_container_width=True)
+                st.download_button(
+                    "💾 Save Notes", f"# Mission Notes\n\n{current_notes}", 
+                    "notes.md", "text/markdown", use_container_width=True
+                )
 
         # --- Footer ---
         st.markdown("---")

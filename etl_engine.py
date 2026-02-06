@@ -58,7 +58,7 @@ def get_db_connection():
         return duckdb.connect(f'md:?motherduck_token={token}')
     else:
         print("⚠️ No MotherDuck token found. Using local 'ransomstat.duckdb'.")
-        return duckdb.connect('ransomstat.duckdb')
+        return duckdb.connect('ransomstat.duckdb', read_only=True)
 
 def init_db(con):
     """Initializes tables and views. Non-destructive for Assets/Dorks."""
@@ -90,6 +90,9 @@ def init_db(con):
     """)
     
     # 3. Victims (Volatile - Always Refresh for Latest Ticker)
+    con.execute("""
+        DROP TABLE IF EXISTS fts_main_victims_index;
+    """)
     con.execute("DROP TABLE IF EXISTS victims")
     con.execute("""
         CREATE TABLE victims (
@@ -104,7 +107,7 @@ def init_db(con):
     # Create FTS Index for Threat Ticker search
     try:
         con.execute("PRAGMA drop_fts_index('victims')")
-    except:
+    except Exception:
         pass
     con.execute("PRAGMA create_fts_index('victims', 'victim_name', 'group_name', 'country')")
     
@@ -116,11 +119,15 @@ def ingest_deepdark(con):
     
     # Check if already ingested
     try:
-        count = con.execute("SELECT count(*) FROM darkweb_assets WHERE category IN ('Market', 'Ransomware Group', 'Forum', 'MaaS')").fetchone()[0]
+        sql = """
+            SELECT count(*) FROM darkweb_assets 
+            WHERE category IN ('Market', 'Ransomware Group', 'Forum', 'MaaS')
+        """
+        count = con.execute(sql).fetchone()[0]
         if count > 0:
             print(f"   ℹ️ Skipping DeepDarkCTI (Found {count} existing records).")
             return
-    except:
+    except Exception:
         pass
     
     regex = re.compile(r'\[([^\]]+)\]\(([^)]+)\)')
@@ -145,7 +152,10 @@ def ingest_deepdark(con):
                          if match:
                              name = match.group(1).strip()
                              url = match.group(2).strip()
-                             rows.append((name, url, category, filename, datetime.datetime.now()))
+                             rows.append((
+                                 name, url, category, filename, 
+                                 datetime.datetime.now()
+                             ))
                 
                 if rows:
                     con.executemany("INSERT INTO darkweb_assets VALUES (?, ?, ?, ?, ?)", rows)
@@ -164,24 +174,31 @@ def ingest_ghdb(con):
         if count > 0:
             print(f"   ℹ️ Skipping GHDB (Found {count} existing records).")
             return
-    except:
+    except Exception:
         pass
     
     headers = {
         "X-Requested-With": "XMLHttpRequest",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/115.0.0.0 Safari/537.36"
+        )
     }
     
     # The directives implies fetching the main DB. 
     # The URL provided is the HTML page. 
-    # Usually the XHR endpoint is different or the paging defaults to returning JSON if that header is set on the main URL?
+    # Usually the XHR endpoint is different or the paging defaults to returning 
+    # JSON if that header is set on the main URL?
     # Directive says: "This site returns HTML by default. You need the Hidden JSON API." and gives the main URL.
     # We will try hitting the main URL with the headers.
     
     with httpx.Client(headers=headers, timeout=30.0) as client:
         try:
-             # Often these 'hidden APIs' are query parameters on the main URL or a specific endpoint like /google-hacking-database?draw=1...
-             # However, based on the prompt "Use these exact headers to trigger the JSON response", I will trust the prompt.
+             # Often these 'hidden APIs' are query parameters on the main URL or a 
+             # specific endpoint like /google-hacking-database?draw=1...
+             # However, based on the prompt "Use these exact headers to trigger "
+             # "the JSON response", I will trust the prompt.
              resp = client.get(GHDB_URL)
              if resp.status_code != 200:
                  print(f"   ❌ GHDB returned status {resp.status_code}")
@@ -190,12 +207,14 @@ def ingest_ghdb(con):
              # The response might be direct JSON or valid JSON.
              try:
                  data = resp.json()
-             except:
-                 print("   ❌ GHDB did not return JSON. The directive might refer to a specific datatables endpoint behavior.")
+             except Exception:
+                 print(
+                     "   ❌ GHDB did not return JSON. The directive might refer "
+                     "to a specific datatables endpoint behavior."
+                 )
                  # Fallback: Sometimes it's embedded or requires parameters. 
-                 # But I must follow "using only public web access" and the provided info.
+                 # But I must follow "using only public web access" and the info.
                  # Let's assume the prompt is correct that HEADERS trigger it.
-                 # If it fails, I might need to notify or handle gracefully.
                  return
 
              # Expected JSON format for DataTables often has 'data' key
@@ -223,14 +242,20 @@ def ingest_ghdb(con):
                  dork_string = item.get('url_title', '') # Often the title IS the dork or summary
                  # If there is a separate 'dork' field use it, otherwise use title as placeholder
                  
-                 # NOTE: ExploitDB JSON often puts the dork in a column or requires scraping the individual ID.
-                 # BUT, for the "Hidden JSON API" of the main table, it usually lists the dorks directly.
-                 # Let's assume 'url_title' or similar holds the dork info.
-                 
-                 raw_cat = item.get('category', {}).get('cat_id', 'Unknown') if isinstance(item.get('category'), dict) else str(item.get('category', 'Unknown'))
+                 # Parse Category
+                 is_cat_dict = isinstance(item.get('category'), dict)
+                 if is_cat_dict:
+                     raw_cat = item.get('category', {}).get('cat_id', 'Unknown')
+                 else:
+                     raw_cat = str(item.get('category', 'Unknown'))
                  category = GHDB_CATEGORY_MAP.get(str(raw_cat), f"Category {raw_cat}")
                  
-                 description = item.get('author', {}).get('name', '') if isinstance(item.get('author'), dict) else "Unknown Author"
+                 # Parse Author
+                 is_auth_dict = isinstance(item.get('author'), dict)
+                 if is_auth_dict:
+                     description = item.get('author', {}).get('name', '')
+                 else:
+                     description = "Unknown Author"
                  
                  rows.append((ghdb_id, date_str, dork_string, category, description))
                  
@@ -288,75 +313,55 @@ def ingest_ransomlook(con, days=7):
 def ingest_ransomlook_groups(con):
     """Crawls all groups from RansomLook to get high-fidelity onion links."""
     print("🕵️ Ingesting RansomLook Groups (High Fidelity)...")
-    
+
     # Check if already ingested
     try:
-        count = con.execute("SELECT count(*) FROM darkweb_assets WHERE source_file = 'api_group_crawl'").fetchone()[0]
+        sql = "SELECT count(*) FROM darkweb_assets WHERE source_file = 'api_group_crawl'"
+        count = con.execute(sql).fetchone()[0]
         if count > 0:
             print(f"   ℹ️ Skipping Group Crawl (Found {count} existing records).")
             return
-    except:
+    except Exception:
         pass
-    
+
     with httpx.Client(follow_redirects=True, timeout=60.0) as client:
         try:
             # 1. Get List of Groups
             resp = client.get("https://www.ransomlook.io/api/groups")
             resp.raise_for_status()
-            groups = resp.json() # List of names
-            
+            groups = resp.json()  # List of names
+
             print(f"   -> Found {len(groups)} groups. Crawling profiles...")
-            
+
             assets = []
-            # Limit to 20 for speed in this demo, or remove limit for full crawl. 
-            # Prompt says "walk it", so we try a chunk. 
-            # Given user feedback "high value", we'll do a batch.
-            for i, group_name in enumerate(groups):
-                # Rate limit / Be nice
-                # In real prod we'd sleep, but here we run sequentially
+            for idx, group_name in enumerate(groups):  # noqa: B007
                 try:
-                    # Encoding specific characters if needed? 
-                    # Usually groups are URL safe or we use urllib.parse.quote.
-                    # Using exact string from API should be fine.
-                    
-                    # API: /api/group/{name}
-                    g_resp = client.get(f"https://www.ransomlook.io/api/group/{group_name}")
+                    g_url = f"https://www.ransomlook.io/api/group/{group_name}"
+                    g_resp = client.get(g_url)
                     if g_resp.status_code == 200:
                         g_data = g_resp.json()
                         locations = g_data.get('locations', [])
-                        
+
                         for loc in locations:
-                            # loc: {'title': '...', 'slug': '...', 'status': '...', 'available': True, 'updated': '...', 'last_scrape': '...', 'enabled': True}
-                            # Wait, documentation in browser said 'locations' provides onion info.
-                            # Usually 'slug' or 'title' is the url? 
-                            # Let's double check the browser findings.
-                            # The browser found 'Urls' section on the page.
-                            # Swagger says /api/group/{name} returns details.
-                            # Let's assume 'slug' is the onion URL if it looks like one.
-                            # Actually, looking at the previous browser visit to 0Mega, the links were displayed.
-                            # The key is likely 'slug', 'title', or specifically 'url' inside locations? 
-                            # Swagger schema wasn't fully inspected for 'locations' items.
-                            # Common pattern: slug is the URL. Let's use what we find.
-                            
-                            onion_url = loc.get('slug') # Often the raw URL in these APIs
-                            if not onion_url:
-                                onion_url = loc.get('location') # Try alternate key
-                                
+                            onion_url = loc.get('slug') or loc.get('location')
                             if onion_url:
-                                assets.append((group_name, onion_url, "RansomLook Profile", "api_group_crawl", datetime.datetime.now()))
-                                
+                                assets.append((
+                                    group_name, onion_url,
+                                    "RansomLook Profile", "api_group_crawl",
+                                    datetime.datetime.now()
+                                ))
                 except Exception:
-                    # Often 404 if group name has slashes or encoding issues
                     pass
-                
-                # Progress every 10
-                if i > 0 and i % 50 == 0:
-                    print(f"      Crawled {i} groups...")
-            
+
+                # Progress every 50
+                if idx > 0 and idx % 50 == 0:
+                    print(f"      Crawled {idx} groups...")
+
             if assets:
-                con.executemany("INSERT INTO darkweb_assets VALUES (?, ?, ?, ?, ?)", assets)
-                print(f"   -> Inserted {len(assets)} high-fidelity assets from Group Crawl.")
-                
+                sql = "INSERT INTO darkweb_assets VALUES (?, ?, ?, ?, ?)"
+                con.executemany(sql, assets)
+                print(f"   -> Inserted {len(assets)} high-fidelity assets.")
+
         except Exception as e:
             print(f"   ❌ RansomLook Group Crawl Error: {e}")
 
