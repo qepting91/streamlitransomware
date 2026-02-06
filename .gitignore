@@ -20,3 +20,12 @@ env/
 # OS
 .DS_Store
 Thumbs.db
+
+# Docusaurus / Node.js
+node_modules/
+build/
+.docusaurus/
+.cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
