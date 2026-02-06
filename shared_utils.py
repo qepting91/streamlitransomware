@@ -12,12 +12,13 @@ import etl_engine
 def get_db_connection():
     """Connects to MotherDuck or Local DuckDB."""
     try:
-        # Check for MOTHERDUCK_TOKEN in [database] section
-        token = st.secrets.get("database", {}).get("motherduck_token")
+        # Check for token at top level or nested in [database]
+        token = st.secrets.get("MOTHERDUCK_TOKEN") or st.secrets.get("database", {}).get("motherduck_token")
         
         if token:
             return duckdb.connect(f'md:?motherduck_token={token}')
         else:
+            # Fallback to local (read-only)
             return duckdb.connect('ransomstat.duckdb', read_only=True)
     except Exception as e:
         st.error(f"Failed to connect to database: {e}")
@@ -138,7 +139,7 @@ def render_analyst_tools(con):
 
         # --- Footer ---
         st.markdown("---")
-        if st.secrets.get("database", {}).get("motherduck_token"):
+        if st.secrets.get("MOTHERDUCK_TOKEN") or st.secrets.get("database", {}).get("motherduck_token"):
             st.caption("🟢 Connected: MotherDuck")
         else:
             st.caption("📂 Connected: Local DB")

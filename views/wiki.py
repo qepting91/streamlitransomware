@@ -20,21 +20,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ==========================================
-# 2. SHARED INFRASTRUCTURE
-# ==========================================
-@st.cache_resource
-def get_db_connection():
-    try:
-        token = st.secrets.get("MOTHERDUCK_TOKEN")
-        if token:
-            return duckdb.connect(f'md:?motherduck_token={token}')
-        else:
-            return duckdb.connect('ransomstat.duckdb', read_only=True)
-    except Exception:
-        return None
-
-con = get_db_connection()
+con = shared_utils.get_db_connection()
 
 # ==========================================
 # 3. MAIN CONTENT

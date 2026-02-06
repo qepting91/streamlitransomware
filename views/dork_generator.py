@@ -1,5 +1,6 @@
 import duckdb
 import streamlit as st
+import shared_utils
 
 # --- Configuration ---
 st.set_page_config(page_title="Google Dork Generator", page_icon="🔧", layout="wide")
@@ -25,20 +26,7 @@ with st.expander("ℹ️ How to use & Data Sources"):
     """)
 st.info("Select a GHDB Category matching your target profile. This will generate Google Dorks to find sensitive exposed assets.")
 
-# --- Database Connection ---
-@st.cache_resource
-def get_db_connection():
-    try:
-        token = st.secrets.get("MOTHERDUCK_TOKEN")
-        if token:
-            return duckdb.connect(f'md:?motherduck_token={token}')
-        else:
-            return duckdb.connect('ransomstat.duckdb', read_only=True)
-    except Exception as e:
-        st.error(f"Failed to connect to database: {e}")
-        return None
-
-con = get_db_connection()
+con = shared_utils.get_db_connection()
 
 # --- Logic ---
 target_domain = st.text_input("Target Domain", "example.com")
