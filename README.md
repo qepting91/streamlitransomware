@@ -6,7 +6,7 @@
 [![Security](https://github.com/qepting91/streamlitransomware/workflows/Security%20Pipeline/badge.svg)](https://github.com/qepting91/streamlitransomware/actions/workflows/security.yml)
 [![Docs](https://github.com/qepting91/streamlitransomware/workflows/Deploy%20Documentation/badge.svg)](https://github.com/qepting91/streamlitransomware/actions/workflows/deploy-docs.yml)
 
-📖 **[View Full Documentation](https://qepting91.github.io/streamlitransomware/)** | [CI/CD Pipeline](https://qepting91.github.io/streamlitransomware/ci-cd) | [Live Dashboard](https://ransomstat.streamlit.app)
+📖 **[View Full Documentation](https://qepting91.github.io/streamlitransomware/)** | [CI/CD Pipeline](https://qepting91.github.io/streamlitransomware/ci-cd) | [Live Dashboard](https://ransomwarecollector.streamlit.app)
 
 ## 🌟 Key Features
 

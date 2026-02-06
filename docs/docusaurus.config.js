@@ -124,7 +124,7 @@ const config = {
               },
               {
                 label: 'Live Dashboard',
-                href: 'https://ransomstat.streamlit.app',
+                href: 'https://ransomwarecollector.streamlit.app',
               },
             ],
           },
