@@ -1,5 +1,5 @@
-import duckdb
 import streamlit as st
+
 import shared_utils
 
 # --- Configuration ---
@@ -14,7 +14,8 @@ st.title("🚀 RansomStat CTI // DORK GENERATOR")
 with st.expander("ℹ️ How to use & Data Sources"):
     st.markdown("""
     **What is this?**
-    **Google Dorks** are advanced search queries used to find exposed files, vulnerable servers, and sensitive data indexed by Google.
+    **Google Dorks** are advanced search queries used to find exposed files, 
+    vulnerable servers, and sensitive data indexed by Google.
     
     **Where is the data from?**
     - **Source:** Scraped from the [Google Hacking Database (GHDB)](https://www.exploit-db.com/google-hacking-database).
@@ -24,7 +25,10 @@ with st.expander("ℹ️ How to use & Data Sources"):
     2. **Select:** Click a row to see the Dork details.
     3. **Copy & Hunt:** Copy the query and test it on Google to identify exposures.
     """)
-st.info("Select a GHDB Category matching your target profile. This will generate Google Dorks to find sensitive exposed assets.")
+st.info(
+    "Select a GHDB Category matching your target profile. This will "
+    "generate Google Dorks to find sensitive exposed assets."
+)
 
 con = shared_utils.get_db_connection()
 
@@ -36,14 +40,17 @@ if con:
     try:
         cats = con.execute("SELECT DISTINCT category FROM dorks ORDER BY category").fetchall()
         categories += [c[0] for c in cats]
-    except:
+    except Exception:
         pass
         
 selected_cat = st.selectbox("GHDB Category", categories)
 
 if selected_cat and selected_cat != "Select Category":
     # Fetch templates for this category
-    templates = con.execute("SELECT dork_string, description FROM dorks WHERE category = ? LIMIT 5", [selected_cat]).fetchall()
+    templates = con.execute(
+        "SELECT dork_string, description FROM dorks WHERE category = ? LIMIT 5", 
+        [selected_cat]
+    ).fetchall()
     
     if templates:
         import urllib.parse
@@ -55,7 +62,7 @@ if selected_cat and selected_cat != "Select Category":
         import re
         
         dork_data = []
-        for tmpl, desc in templates:
+        for tmpl, _desc in templates:
             # Clean template: Remove HTML tags if present (scraped artifact)
             clean_tmpl = re.sub(r'<[^>]+>', '', tmpl).strip()
             
