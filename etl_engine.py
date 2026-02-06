@@ -1,11 +1,11 @@
 
+import datetime
+import re
+from pathlib import Path
+
 import duckdb
 import httpx
-import re
-import datetime
 import tomllib
-import os
-from pathlib import Path
 
 # --- Configuration ---
 SECRETS_PATH = Path(".streamlit/secrets.toml")
@@ -45,7 +45,11 @@ def get_db_connection():
         try:
             with open(SECRETS_PATH, "rb") as f:
                 secrets = tomllib.load(f)
-                token = secrets.get("MOTHERDUCK_TOKEN")
+                # Handle nested [database] section
+                if "database" in secrets:
+                    token = secrets["database"].get("motherduck_token")
+                else:
+                    token = secrets.get("MOTHERDUCK_TOKEN")
         except Exception as e:
             print(f"Warning: Could not read secrets.toml: {e}")
     
@@ -341,7 +345,7 @@ def ingest_ransomlook_groups(con):
                             if onion_url:
                                 assets.append((group_name, onion_url, "RansomLook Profile", "api_group_crawl", datetime.datetime.now()))
                                 
-                except Exception as e:
+                except Exception:
                     # Often 404 if group name has slashes or encoding issues
                     pass
                 

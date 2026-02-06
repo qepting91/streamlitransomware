@@ -14,9 +14,15 @@
 *   **One-Click Hunting**: Direct "Search 🔍" links to execute queries instantly.
 *   **Sanitized Output**: Clean, copy-paste ready queries stripped of HTML artifacts.
 
-### 🕸️ DeepDark Intelligence Graph
-*   **Infrastructure Correlation**: Visualize connections between Threat Groups and their dark web assets (Chat panels, leak sites).
+### 🕸️ DeepDark Intelligence
+*   **Target Analysis**: On-demand Pivot Graphs to visualize relationships. Select a specific **Actor** to see their network, or a **Victim** to see who claimed them.
+*   **Infrastructure Correlation**: Clean matrix view of known victims, threat actors, and active Tor infrastructure.
 *   **Data Sources**: Fuses data from RansomLook Direct Crawls and [DeepDarkCTI](https://github.com/fastfire/deepdarkCTI).
+
+### 🛠️ Analyst Tools
+*   **Voice Intelligence**: Record voice notes directly in the browser; transcripts are auto-saved to your session.
+*   **Session Notepad**: Persistent scratchpad for tracking indicators during an investigation.
+*   **Export**: Download your transcripts and notes as a Markdown report.
 
 ### 📚 Analyst Wiki
 *   **TTPs & Defense**: Detailed "Senior Analyst" breakdown of Tactics, Techniques, and Procedures.
@@ -67,10 +73,10 @@ MOTHERDUCK_TOKEN = "your-token-here"
 Run the application using Streamlit:
 
 ```bash
-streamlit run Threat_Ticker.py
+streamlit run app.py
 ```
 
-*Note: The main entry point was renamed from `app.py` to `Threat_Ticker.py` in v2.0.*
+*Note: The main entry point is `app.py`.*
 
 ---
 

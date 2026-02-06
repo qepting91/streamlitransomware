@@ -6,3 +6,10 @@ pandas
 plotly
 networkx
 tomli  # For safely reading secrets.toml in ETL script if needed (though py3.11+ has tomllib, explicit is fine or just use stdlib)
+
+# Dev / Test
+pytest
+pytest-mock
+ruff
+bandit
+SpeechRecognition

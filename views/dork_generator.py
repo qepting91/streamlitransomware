@@ -1,12 +1,11 @@
-import streamlit as st
 import duckdb
+import streamlit as st
 
 # --- Configuration ---
 st.set_page_config(page_title="Google Dork Generator", page_icon="🔧", layout="wide")
 
-st.title("🧙‍♂️ Google Dork Generator")
+st.title("🚀 RansomStat CTI // DORK GENERATOR")
 
-import shared_utils
 # We need 'con' to be defined before passing it, but 'con' is defined later in this file (line 36).
 # I should move the sidebar usage AFTER 'con' is defined, or move 'con' definition up.
 # Let's check where 'con' is defined. Line 36.
@@ -60,6 +59,7 @@ if selected_cat and selected_cat != "Select Category":
     
     if templates:
         import urllib.parse
+
         import pandas as pd
 
         st.markdown("### Generated Dorks")

@@ -1,34 +1,10 @@
 import streamlit as st
 import duckdb
-import pandas as pd
-import datetime
+import shared_utils
+import etl_engine
 
-# --- Configuration & Styling ---
-st.set_page_config(
-    page_title="RansomStat CTI",
-    page_icon="🛡️",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-# --- Database Connection ---
-@st.cache_resource
-def get_db_connection():
-    """Connects to MotherDuck or Local DuckDB."""
-    try:
-        # Check for MOTHERDUCK_TOKEN in top-level secrets (as user pasted)
-        # or in [database] section if properly structured later.
-        token = st.secrets.get("MOTHERDUCK_TOKEN")
-        
-        if token:
-            return duckdb.connect(f'md:?motherduck_token={token}')
-        else:
-            return duckdb.connect('ransomstat.duckdb', read_only=True)
-    except Exception as e:
-        st.error(f"Failed to connect to database: {e}")
-        return None
-
-con = get_db_connection()
+# Get connection
+con = shared_utils.get_db_connection()
 
 # --- Search Function ---
 def search_victims(query):
@@ -65,18 +41,9 @@ def search_victims(query):
     return con.execute(sql).df()
 
 
-
-# Sidebar
-import shared_utils
-
-# ... (Previous code)
+# --- Main Content ---
 st.title("🚀 RansomStat CTI // WAR ROOM")
 st.caption("Live Offensive Intelligence & Infrastructure Monitoring")
-
-# Sidebar
-shared_utils.render_analyst_tools(con)
-
-# --- Metrics Dashboard ---
 
 # --- Metrics Dashboard ---
 if con:
@@ -90,11 +57,8 @@ if con:
         col1.metric("Recent Victims", total_victims)
         col2.metric("Active Groups (7d)", active_groups)
         col3.metric("System Health", "100%")
-    except:
+    except Exception:
         pass
-
-# --- Main Content ---
-st.header("📡 Threat Ticker")
 
 with st.expander("ℹ️ How to use & Data Sources"):
     st.markdown("""
@@ -114,7 +78,9 @@ with st.expander("ℹ️ How to use & Data Sources"):
 
 
 # Global Search
-search_query = st.text_input("Search Victims / Groups", placeholder="e.g. Qilin, LockBit...")
+col_s1, col_s2, col_s3 = st.columns([1, 2, 1])
+with col_s2:
+    search_query = st.text_input("Search Victims / Groups", placeholder="🔍 Search e.g. Qilin, LockBit...", label_visibility="collapsed")
 
 # Data Fetch
 if con:
@@ -126,9 +92,9 @@ if con:
             df,
             width='stretch',
             column_config={
-                "onion_link": st.column_config.LinkColumn("Group Site (Tor)"),
-                "discovered_date": st.column_config.DateColumn("Date"),
-                "victim_name": "Victim",
+                "onion_link": st.column_config.LinkColumn("Group Site", display_text=r"https?://(.*?)/?$"),
+                "discovered_date": st.column_config.DateColumn("Date", format="YYYY-MM-DD"),
+                "victim_name": "Victim Organization",
                 "group_name": "Threat Actor"
             },
             hide_index=True,
@@ -151,7 +117,7 @@ if con:
                 @st.dialog(f"Threat Profile: {group_name.upper()}")
                 def show_profile(g_name):
                     with st.spinner(f"📡 Intercepting communications for {g_name}..."):
-                        import etl_engine
+                        
                         meta, victims = etl_engine.fetch_group_details(g_name)
                     
                     if not meta and not victims:
@@ -205,6 +171,3 @@ if con:
         st.error(f"Data Fetch Error: {e}")
 else:
     st.info("Initializing Secure Connection...")
-
-# Key Metrics Dashboard (Optional Summary)
-
