@@ -37,5 +37,11 @@ Welcome to **RansomStat CTI**. This dashboard allows you to monitor ransomware g
 - **Threat Ticker**: Live feed of victims.
 - **Group Profiles**: Analyze specific threat actors.
 - **DeepDark Intelligence**: Monitor Tor infrastructure.
+- **Google Dork Generator**: OSINT search queries from GHDB.
+- **Analyst Tools**: Voice intelligence, session notes, and tradecraft wiki.
+
+## Documentation
+
+- **[CI/CD Pipeline](./ci-cd)**: Learn about automated testing, security scanning, and deployment workflows.
 
 Check the sidebar for more tools!
