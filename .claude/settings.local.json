@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ruff check:*)",
+      "Bash(set PYTHONPATH=%PYTHONPATH%)",
+      "Bash(.)",
+      "Bash(pytest:*)",
+      "Bash(export PYTHONPATH=$PYTHONPATH:.:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(python -m ruff check:*)",
+      "Bash(python:*)",
+      "Bash(iconv:*)",
+      "Bash(python3:*)",
+      "Bash(npm run build:*)",
+      "Bash(pip show:*)",
+      "Bash(gh run list:*)",
+      "Bash(pip --version:*)",
+      "WebFetch(domain:github.com)"
+    ]
+  }
+}
