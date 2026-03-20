@@ -1,4 +1,4 @@
-duckdb>=1.1.0
+duckdb==1.4.4
 streamlit>=1.52.0
 httpx
 lxml
